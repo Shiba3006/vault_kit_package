@@ -130,9 +130,13 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
 
   Future<void> _deleteToken() async {
     try {
+      await _checkStoredValues();
+      if (_hasToken == false) {
+        _appendLog('⚠️ No token to delete');
+        return;
+      }
       await _vault.delete(key: 'auth_token');
       _appendLog('🗑 Token deleted');
-      await _checkStoredValues();
     } on PlatformException catch (e) {
       _appendLog('❌ [${e.code}] ${e.message}');
     }
@@ -140,9 +144,13 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
 
   Future<void> _deletePassword() async {
     try {
+      await _checkStoredValues();
+      if (_hasPassword == false) {
+        _appendLog('⚠️ No password to delete');
+        return;
+      }
       await _vault.delete(key: 'user_password');
       _appendLog('🗑 Password deleted');
-      await _checkStoredValues();
     } on PlatformException catch (e) {
       _appendLog('❌ [${e.code}] ${e.message}');
     }
