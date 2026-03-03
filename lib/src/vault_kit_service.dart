@@ -120,8 +120,8 @@ class VaultKit {
   /// await vault.save(key: 'auth_token', value: 'eyJhbGci...');
   /// await vault.save(key: 'user', value: jsonEncode(userModel.toJson()));
   /// ```
-  Future<void> save({required String key, required String value}) async {
-    await _setObject<String>(key, value, (p) => jsonEncode(p));
+  Future<void> save<T>({required String key, required T value}) async {
+    await _setObject<T>(key, value, (p) => jsonEncode(p));
   }
 
   // -------------------------------------------------------

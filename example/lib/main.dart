@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vault_kit/vault_kit.dart';
@@ -32,11 +34,12 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
   final _vault = VaultKit();
 
   final _tokenController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   String _log = 'Logs will appear here...';
   bool _hasToken = false;
-  bool _hasPassword = false;
+  bool _hasCredential = false;
 
   @override
   void initState() {
@@ -47,6 +50,7 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
   @override
   void dispose() {
     _tokenController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -57,10 +61,10 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
 
   Future<void> _checkStoredValues() async {
     final hasToken = await _vault.has(key: 'auth_token');
-    final hasPassword = await _vault.has(key: 'user_password');
+    final hasCredentials = await _vault.has(key: 'user_credentials'); // 👈
     setState(() {
       _hasToken = hasToken;
-      _hasPassword = hasPassword;
+      _hasCredential = hasCredentials;
     });
   }
 
@@ -84,15 +88,21 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
     }
   }
 
-  Future<void> _savePassword() async {
-    final value = _passwordController.text.trim();
-    if (value.isEmpty) {
-      _appendLog('❌ Password field is empty');
+  Future<void> _saveUserCredentials() async {
+    final username = _usernameController.text;
+    final password = _passwordController.text;
+    if (username.isEmpty || password.isEmpty) {
+      _appendLog('❌ Username and password are required');
       return;
     }
     try {
-      await _vault.save(key: 'user_password', value: value);
-      _appendLog('✅ Password saved successfully');
+      await _vault.save(
+        key: 'user_credentials',
+        value: UserCredentialsModel(userName: username, password: password)
+            .toJson(),
+      );
+      _appendLog('✅ Credentials saved successfully');
+      _usernameController.clear();
       _passwordController.clear();
       await _checkStoredValues();
     } on PlatformException catch (e) {
@@ -104,23 +114,40 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
   // 📦 Fetch
   // -------------------------------------------------------
 
-  Future<void> _fetchToken() async {
+  Future<String?> _fetchToken() async {
     try {
       final token = await _vault.fetch<String>(key: 'auth_token');
       _appendLog(token != null ? '🔓 Token: $token' : '⚠️ No token stored');
+      return token;
     } on PlatformException catch (e) {
       _appendLog('❌ [${e.code}] ${e.message}');
+      rethrow;
     }
   }
 
-  Future<void> _fetchPassword() async {
+  Future<UserCredentialsModel?> _fetchUserCredentials() async {
+    _checkStoredValues(); // Ensure we have the latest stored status
+    if (_hasCredential == false) {
+      _appendLog('⚠️ No credentials stored');
+      return null;
+    }
     try {
-      final password = await _vault.fetch<String>(key: 'user_password');
-      _appendLog(password != null
-          ? '🔓 Password: $password'
-          : '⚠️ No password stored');
+      final result = await _vault.fetch<UserCredentialsModel?>(
+        key: 'user_credentials',
+        fromJson: (p) =>
+            UserCredentialsModel.fromJson(p as Map<String, dynamic>),
+      );
+      if (result == null) {
+        _appendLog('⚠️ No credentials stored');
+        return null;
+      } else {
+        _appendLog('🔓 Username: ${result.userName}');
+        _appendLog('🔓 Password: ${result.password}');
+        return result;
+      }
     } on PlatformException catch (e) {
       _appendLog('❌ [${e.code}] ${e.message}');
+      rethrow;
     }
   }
 
@@ -142,15 +169,11 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
     }
   }
 
-  Future<void> _deletePassword() async {
+  Future<void> _deleteUserCredentials() async {
     try {
+      await _vault.delete(key: 'user_credentials');
+      _appendLog('🗑 Credentials deleted');
       await _checkStoredValues();
-      if (_hasPassword == false) {
-        _appendLog('⚠️ No password to delete');
-        return;
-      }
-      await _vault.delete(key: 'user_password');
-      _appendLog('🗑 Password deleted');
     } on PlatformException catch (e) {
       _appendLog('❌ [${e.code}] ${e.message}');
     }
@@ -246,12 +269,21 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
 
             const SizedBox(height: 16),
 
-            // ── Password Section ──
+            // ── User Credentials Section ──
             _SectionCard(
-              title: '🔑 User Password',
-              stored: _hasPassword,
+              title: '👤 User Credentials',
+              stored: _hasCredential,
               child: Column(
                 children: [
+                  TextField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter username',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
@@ -266,7 +298,7 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
                     children: [
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: _savePassword,
+                          onPressed: _saveUserCredentials,
                           icon: const Icon(Icons.save),
                           label: const Text('Save'),
                         ),
@@ -274,14 +306,14 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: _fetchPassword,
+                          onPressed: _fetchUserCredentials,
                           icon: const Icon(Icons.download),
                           label: const Text('Fetch'),
                         ),
                       ),
                       const SizedBox(width: 8),
                       IconButton.filled(
-                        onPressed: _deletePassword,
+                        onPressed: _deleteUserCredentials,
                         icon: const Icon(Icons.delete),
                         color: Colors.white,
                         style:
@@ -292,7 +324,6 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
 
             // ── Clear All ──
@@ -415,6 +446,27 @@ class _SectionCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class UserCredentialsModel {
+  const UserCredentialsModel({required this.userName, required this.password});
+
+  final String userName;
+  final String password;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'username': userName,
+      'password': password,
+    };
+  }
+
+  factory UserCredentialsModel.fromJson(Map<String, dynamic> json) {
+    return UserCredentialsModel(
+      userName: json['username'],
+      password: json['password'],
     );
   }
 }
