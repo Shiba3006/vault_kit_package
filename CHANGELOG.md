@@ -1,3 +1,6 @@
+## 1.0.2
+- Fix: update README and deleted unused file.
+
 ## 1.0.1
 - Fix: update README logo path
 

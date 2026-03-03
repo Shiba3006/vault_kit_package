@@ -341,5 +341,5 @@ This project is licensed under the **MIT License** — see [LICENSE](./LICENSE) 
 ---
 
 <p align="center">
-  Made with ❤️ for the Flutter community by <a href="https://github.com/Shiba3006">Your Name</a>
+  Made with ❤️ for the Flutter community by <a href="https://github.com/Shiba3006">Shehab Ahmed</a>
 </p>
