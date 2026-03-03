@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:vault_kit/vault_kit.dart';
 
 void main() => runApp(const VaultKitExampleApp());
@@ -12,7 +13,7 @@ class VaultKitExampleApp extends StatelessWidget {
       title: 'VaultKit Example',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
       home: const VaultKitExampleScreen(),
@@ -28,7 +29,7 @@ class VaultKitExampleScreen extends StatefulWidget {
 }
 
 class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
-  final VaultKit _vault = VaultKit();
+  final _vault = VaultKit();
 
   final _tokenController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -37,13 +38,10 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
   bool _hasToken = false;
   bool _hasPassword = false;
 
-  // -------------------------------------------------------
-  // 🔄 Lifecycle
-  // -------------------------------------------------------
-
   @override
   void initState() {
     super.initState();
+
     _checkStoredValues();
   }
 
@@ -59,8 +57,8 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
   // -------------------------------------------------------
 
   Future<void> _checkStoredValues() async {
-    final hasToken = await _vault.has('auth_token');
-    final hasPassword = await _vault.has('user_password');
+    final hasToken = await _vault.has(key: 'auth_token');
+    final hasPassword = await _vault.has(key: 'user_password');
     setState(() {
       _hasToken = hasToken;
       _hasPassword = hasPassword;
@@ -68,7 +66,7 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
   }
 
   // -------------------------------------------------------
-  // 💾 Save token
+  // 💾 Save
   // -------------------------------------------------------
 
   Future<void> _saveToken() async {
@@ -82,14 +80,10 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
       _appendLog('✅ Token saved successfully');
       _tokenController.clear();
       await _checkStoredValues();
-    } catch (e) {
-      _appendLog('❌ Save failed: ${e.toString()}');
+    } on PlatformException catch (e) {
+      _appendLog('❌ [${e.code}] ${e.message}');
     }
   }
-
-  // -------------------------------------------------------
-  // 💾 Save password
-  // -------------------------------------------------------
 
   Future<void> _savePassword() async {
     final value = _passwordController.text.trim();
@@ -102,69 +96,61 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
       _appendLog('✅ Password saved successfully');
       _passwordController.clear();
       await _checkStoredValues();
-    } catch (e) {
-      _appendLog('❌ Save failed: $e');
+    } on PlatformException catch (e) {
+      _appendLog('❌ [${e.code}] ${e.message}');
     }
   }
 
   // -------------------------------------------------------
-  // 📦 Fetch token
+  // 📦 Fetch
   // -------------------------------------------------------
 
   Future<void> _fetchToken() async {
     try {
       final token = await _vault.fetch<String>(key: 'auth_token');
-
-      _appendLog('🔓 Token: $token');
-    } catch (e) {
-      _appendLog('❌ Fetch failed: ${e.toString()}');
+      _appendLog(token != null ? '🔓 Token: $token' : '⚠️ No token stored');
+    } on PlatformException catch (e) {
+      _appendLog('❌ [${e.code}] ${e.message}');
     }
   }
-
-  // -------------------------------------------------------
-  // 📦 Fetch password
-  // -------------------------------------------------------
 
   Future<void> _fetchPassword() async {
     try {
       final password = await _vault.fetch<String>(key: 'user_password');
-
-      _appendLog('🔓 Password: $password');
-    } catch (e) {
-      _appendLog('❌ Fetch failed: ${e.toString()}');
+      _appendLog(password != null
+          ? '🔓 Password: $password'
+          : '⚠️ No password stored');
+    } on PlatformException catch (e) {
+      _appendLog('❌ [${e.code}] ${e.message}');
     }
   }
 
   // -------------------------------------------------------
-  // 🗑 Delete token
+  // 🗑 Delete
   // -------------------------------------------------------
 
   Future<void> _deleteToken() async {
     try {
-      await _vault.delete('auth_token');
+      await _vault.delete(key: 'auth_token');
       _appendLog('🗑 Token deleted');
       await _checkStoredValues();
-    } catch (e) {
-      _appendLog('❌ Delete failed: ${e.toString()}');
+    } on PlatformException catch (e) {
+      _appendLog('❌ [${e.code}] ${e.message}');
     }
   }
-
-  // -------------------------------------------------------
-  // 🗑 Delete password
-  // -------------------------------------------------------
 
   Future<void> _deletePassword() async {
     try {
-      await _vault.delete('user_password');
+      await _vault.delete(key: 'user_password');
       _appendLog('🗑 Password deleted');
       await _checkStoredValues();
-    } catch (e) {
-      _appendLog('❌ Delete failed: ${e.toString()}');
+    } on PlatformException catch (e) {
+      _appendLog('❌ [${e.code}] ${e.message}');
     }
   }
 
   // -------------------------------------------------------
-  // 🧹 Clear all
+  // 🧹 Clear All
   // -------------------------------------------------------
 
   Future<void> _clearAll() async {
@@ -172,8 +158,8 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
       await _vault.clearAll();
       _appendLog('🧹 All credentials cleared');
       await _checkStoredValues();
-    } catch (e) {
-      _appendLog('❌ Clear failed: ${e.toString()}');
+    } on PlatformException catch (e) {
+      _appendLog('❌ [${e.code}] ${e.message}');
     }
   }
 
@@ -242,9 +228,8 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
                         onPressed: _deleteToken,
                         icon: const Icon(Icons.delete),
                         color: Colors.white,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
+                        style:
+                            IconButton.styleFrom(backgroundColor: Colors.red),
                       ),
                     ],
                   ),
@@ -292,9 +277,8 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
                         onPressed: _deletePassword,
                         icon: const Icon(Icons.delete),
                         color: Colors.white,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
+                        style:
+                            IconButton.styleFrom(backgroundColor: Colors.red),
                       ),
                     ],
                   ),
