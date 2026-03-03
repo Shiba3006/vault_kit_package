@@ -83,9 +83,6 @@ class VaultKit {
   /// {@macro vault_kit}
   VaultKit() : _channel = const _DefaultVaultKitChannel();
 
-  /// Private constructor for internal channel injection.
-  VaultKit._withChannel(this._channel);
-
   final _VaultKitChannel _channel;
 
   // -------------------------------------------------------

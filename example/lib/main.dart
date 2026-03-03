@@ -41,7 +41,6 @@ class _VaultKitExampleScreenState extends State<VaultKitExampleScreen> {
   @override
   void initState() {
     super.initState();
-
     _checkStoredValues();
   }
 
