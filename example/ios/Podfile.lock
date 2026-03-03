@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - vault_kit (1.0.0):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - vault_kit (from `.symlinks/plugins/vault_kit/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  vault_kit:
+    :path: ".symlinks/plugins/vault_kit/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  vault_kit: b287d37beb3484bb5f7e33a9e46418d796c8ed99
+
+PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+
+COCOAPODS: 1.16.2
