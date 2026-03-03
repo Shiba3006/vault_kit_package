@@ -1,3 +1,6 @@
+## 1.0.3
+- update: make class VaultKit const.
+
 ## 1.0.2
 - Fix: update README and deleted unused file.
 
