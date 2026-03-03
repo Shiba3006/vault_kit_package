@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Shiba3006/vault_kit/main/assets/logo.png" height="120" alt="VaultKit Logo"/>
+  <img src="https://raw.githubusercontent.com/Shiba3006/vault_kit/main/assets/vault_kit_logo.png" height="120" alt="VaultKit Logo"/>
 </p>
 
 <h1 align="center">vault_kit</h1>
