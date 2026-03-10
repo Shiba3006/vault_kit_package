@@ -15,7 +15,11 @@ public class VaultKitPlugin: NSObject, FlutterPlugin {
             name: "vault_kit_channel",
             binaryMessenger: registrar.messenger()
         )
-        registrar.addMethodCallDelegate(VaultKitPlugin(), channel: channel)
+        let instance = VaultKitPlugin()
+
+        // 👇 clear Keychain on fresh install
+        instance.clearKeychainIfFirstLaunch()
+        registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
     // -------------------------------------------------------
@@ -131,6 +135,16 @@ public class VaultKitPlugin: NSObject, FlutterPlugin {
                               kSecAttrService: serviceKey,
                               kSecAttrAccount: key,
                               kSecMatchLimit:  kSecMatchLimitOne] as CFDictionary, nil) == errSecSuccess
+    }
+
+    private func clearKeychainIfFirstLaunch() {
+        let key = "vault_kit_has_launched"
+        let hasLaunched = UserDefaults.standard.bool(forKey: key)
+        if !hasLaunched {
+            // First launch — clear any stale Keychain data from previous installs
+            try? clearAll()
+            UserDefaults.standard.set(true, forKey: key)
+        }
     }
 }
 

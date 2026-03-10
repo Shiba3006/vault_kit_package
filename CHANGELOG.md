@@ -1,3 +1,11 @@
+## 1.0.5
+- Fix: clear Keychain data on fresh iOS app install to prevent stale 
+  credentials from previous installations being accessible after reinstall.
+  iOS Keychain persists data across uninstalls by default — this fix adds
+  a first-launch detection using `UserDefaults` to wipe any residual 
+  Keychain entries on fresh install, aligning iOS behavior with Android 
+  which automatically wipes data on uninstall.
+
 ## 1.0.4
 - Fix: explicitly set `kSecAttrSynchronizable: false` on iOS to fully exclude Keychain items from iCloud sync and backups.
 
